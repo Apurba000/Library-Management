@@ -15,7 +15,7 @@ public class Category
     
     public bool IsActive { get; set; } = true;
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     
     // Navigation properties
     public virtual ICollection<Book> Books { get; set; } = new List<Book>();

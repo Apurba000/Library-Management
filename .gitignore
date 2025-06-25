@@ -98,7 +98,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # Entity Framework
-Migrations/
+# Migrations/
 
 # Database files
 *.mdf
@@ -201,9 +201,9 @@ ehthumbs.db
 Thumbs.db
 
 # Application specific
-appsettings.Development.json
-appsettings.Production.json
-appsettings.Staging.json
+# appsettings.Development.json
+# appsettings.Production.json
+# appsettings.Staging.json
 
 # Connection strings and secrets
 connectionstrings.json

@@ -1,10 +1,25 @@
+using Microsoft.EntityFrameworkCore;
+using LibraryManagement.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// Add DbContext with PostgreSQL
+builder.Services.AddDbContext<LibraryDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 var app = builder.Build();
+
+// Auto-update database on startup
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+    context.Database.Migrate(); // This automatically applies pending migrations
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

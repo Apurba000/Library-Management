@@ -14,21 +14,20 @@ public class Loan
     [Required]
     public int MemberId { get; set; }
     
-    public DateTime LoanDate { get; set; } = DateTime.UtcNow;
+    public DateTime LoanDate { get; set; }
     
     [Required]
     public DateTime DueDate { get; set; }
     
     public DateTime? ReturnDate { get; set; }
     
-    public LoanStatus Status { get; set; } = LoanStatus.Borrowed;
+    public LoanStatus Status { get; set; }
     
     [MaxLength(500)]
     public string? Notes { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     
     // Navigation properties
     [ForeignKey("BookId")]

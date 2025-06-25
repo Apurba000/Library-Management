@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using LibraryManagement.Enums;
 
 namespace LibraryManagement.Models;
 
@@ -30,18 +31,16 @@ public class Member
     
     public DateTime? DateOfBirth { get; set; }
     
-    public DateTime MembershipDate { get; set; } = DateTime.UtcNow;
+    public DateTime MembershipDate { get; set; }
     
     public DateTime? MembershipExpiryDate { get; set; }
     
-    [MaxLength(20)]
-    public string MembershipStatus { get; set; } = "Active";
+    public MembershipStatus MembershipStatus { get; set; } = MembershipStatus.Active;
     
     public bool IsActive { get; set; } = true;
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     
     // Navigation properties
     [ForeignKey("UserId")]
