@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using LibraryManagement.Enums;
 
 namespace LibraryManagement.Models;
 
@@ -20,8 +21,7 @@ public class Loan
     
     public DateTime? ReturnDate { get; set; }
     
-    [MaxLength(20)]
-    public string Status { get; set; } = "Borrowed";
+    public LoanStatus Status { get; set; } = LoanStatus.Borrowed;
     
     [MaxLength(500)]
     public string? Notes { get; set; }

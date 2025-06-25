@@ -36,6 +36,9 @@ public class Book
     [MaxLength(100)]
     public string? Location { get; set; }
     
+    [MaxLength(500)]
+    public string? CoverImageUrl { get; set; }
+    
     public int? CategoryId { get; set; }
     
     public bool IsActive { get; set; } = true;
