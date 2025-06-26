@@ -3,6 +3,7 @@ using LibraryManagement.Models;
 using LibraryManagement.Services;
 using LibraryManagement.DTOs;
 using LibraryManagement.Mappers;
+using LibraryManagement.Enums;
 
 namespace LibraryManagement.Controllers;
 
@@ -255,6 +256,139 @@ public class UsersController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { error = "An error occurred while checking email uniqueness", details = ex.Message });
+        }
+    }
+
+    // POST: api/users/signin
+    [HttpPost("signin")]
+    public async Task<ActionResult<object>> SignIn([FromBody] LoginDto loginDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _userService.SignInAsync(loginDto.Username, loginDto.Password);
+            
+            if (user == null)
+            {
+                return Unauthorized(new { error = "Invalid username or password" });
+            }
+
+            // Return user info without sensitive data
+            return Ok(new
+            {
+                message = "Sign in successful",
+                user = new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    email = user.Email,
+                    role = user.Role,
+                    lastLoginDate = user.LastLoginDate
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "An error occurred during sign in", details = ex.Message });
+        }
+    }
+
+    // POST: api/users/signup
+    [HttpPost("signup")]
+    public async Task<ActionResult<object>> SignUp([FromBody] RegisterDto registerDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Validate password confirmation
+            if (registerDto.Password != registerDto.ConfirmPassword)
+            {
+                return BadRequest(new { error = "Password and confirmation password do not match" });
+            }
+
+            var user = await _userService.SignUpAsync(
+                registerDto.Username, 
+                registerDto.Email, 
+                registerDto.Password
+            );
+
+            // Return user info without sensitive data
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, new
+            {
+                message = "User registered successfully",
+                user = new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    email = user.Email,
+                    role = user.Role,
+                    createdAt = user.CreatedAt
+                }
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "An error occurred during registration", details = ex.Message });
+        }
+    }
+
+    // POST: api/users/signup-admin
+    [HttpPost("signup-admin")]
+    public async Task<ActionResult<object>> SignUpAdmin([FromBody] RegisterDto registerDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Validate password confirmation
+            if (registerDto.Password != registerDto.ConfirmPassword)
+            {
+                return BadRequest(new { error = "Password and confirmation password do not match" });
+            }
+
+            var user = await _userService.SignUpAsync(
+                registerDto.Username, 
+                registerDto.Email, 
+                registerDto.Password,
+                UserRole.Admin
+            );
+
+            // Return user info without sensitive data
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, new
+            {
+                message = "Admin user registered successfully",
+                user = new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    email = user.Email,
+                    role = user.Role,
+                    createdAt = user.CreatedAt
+                }
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "An error occurred during admin registration", details = ex.Message });
         }
     }
 } 

@@ -3,6 +3,8 @@ using LibraryManagement.Repositories;
 using Microsoft.EntityFrameworkCore;
 using LibraryManagement.Data;
 using LibraryManagement.Enums;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace LibraryManagement.Services;
 
@@ -250,5 +252,107 @@ public class UserService : IUserService
     public async Task<IEnumerable<User>> GetUsersWithMemberInfoAsync()
     {
         return await _userRepository.GetUsersWithMemberInfoAsync();
+    }
+
+    // Authentication methods
+    public async Task<User?> SignInAsync(string username, string password)
+    {
+        var user = await _userRepository.GetUserByUsernameAsync(username);
+        if (user == null || !user.IsActive)
+        {
+            return null;
+        }
+
+        if (VerifyPassword(password, user.PasswordHash, user.Salt))
+        {
+            // Update last login date
+            user.LastLoginDate = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
+            await _context.SaveChangesAsync();
+            
+            return user;
+        }
+
+        return null;
+    }
+
+    public async Task<User> SignUpAsync(string username, string email, string password, UserRole role = UserRole.Member)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // Validate username uniqueness
+            if (!await _userRepository.IsUsernameUniqueAsync(username))
+            {
+                throw new InvalidOperationException($"User with username '{username}' already exists.");
+            }
+
+            // Validate email uniqueness
+            if (!await _userRepository.IsEmailUniqueAsync(email))
+            {
+                throw new InvalidOperationException($"User with email '{email}' already exists.");
+            }
+
+            // Hash password
+            var (passwordHash, salt) = HashPassword(password);
+
+            var user = new User
+            {
+                Username = username,
+                Email = email,
+                PasswordHash = passwordHash,
+                Salt = salt,
+                Role = role,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _userRepository.AddAsync(user);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return user;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    private (string passwordHash, string salt) HashPassword(string password)
+    {
+        // Generate a random salt
+        byte[] saltBytes = new byte[32];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(saltBytes);
+        }
+        string salt = Convert.ToBase64String(saltBytes);
+
+        // Combine password and salt
+        string combined = password + salt;
+        
+        // Hash using SHA256
+        using var sha256 = SHA256.Create();
+        byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(combined));
+        string passwordHash = Convert.ToBase64String(hashBytes);
+
+        return (passwordHash, salt);
+    }
+
+    private bool VerifyPassword(string password, string storedHash, string storedSalt)
+    {
+        // Combine password and stored salt
+        string combined = password + storedSalt;
+        
+        // Hash using SHA256
+        using var sha256 = SHA256.Create();
+        byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(combined));
+        string passwordHash = Convert.ToBase64String(hashBytes);
+
+        return passwordHash == storedHash;
     }
 } 
