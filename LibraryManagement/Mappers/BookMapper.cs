@@ -23,9 +23,7 @@ public static class BookMapper
             Location = book.Location,
             CoverImageUrl = book.CoverImageUrl,
             CreatedAt = book.CreatedAt,
-            UpdatedAt = book.UpdatedAt,
-            Category = book.Category?.ToDto(),
-            CreatedByUser = book.CreatedByUser?.ToDto()
+            UpdatedAt = book.UpdatedAt
         };
     }
 

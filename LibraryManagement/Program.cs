@@ -10,7 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure to bind to all interfaces
 builder.WebHost.UseUrls("http://0.0.0.0:5288", "https://0.0.0.0:7291");
 
-
 builder.Services.AddOpenApi();
 
 // Add Swagger/OpenAPI services
@@ -33,12 +32,29 @@ builder.Services.AddDbContext<LibraryDbContext>(options =>
 
 // Register Repositories
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 
 // Register Services
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IMemberService, MemberService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ILoanService, LoanService>();
 
+// Configure CORS - More explicit configuration
 builder.Services.AddCors(options =>
 {
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+    
+    // Also add a named policy
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
@@ -80,6 +96,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// CORS must be one of the first middleware
+app.UseCors();
+
 app.UseHttpsRedirection();
 
 // Add routing and map controllers
@@ -89,7 +108,5 @@ app.MapControllers();
 // Health check endpoint
 app.MapGet("/health", () => new { Status = "Healthy", Timestamp = DateTime.UtcNow })
     .WithName("HealthCheck");
-
-app.UseCors("AllowAll");
 
 app.Run();

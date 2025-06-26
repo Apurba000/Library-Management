@@ -11,17 +11,38 @@ public static class LoanMapper
         return new LoanResponseDto
         {
             Id = loan.Id,
-            BookId = loan.BookId,
             MemberId = loan.MemberId,
+            BookId = loan.BookId,
+            Status = loan.Status,
             LoanDate = loan.LoanDate,
             DueDate = loan.DueDate,
             ReturnDate = loan.ReturnDate,
-            Status = loan.Status,
-            Notes = loan.Notes,
             CreatedAt = loan.CreatedAt,
             UpdatedAt = loan.UpdatedAt,
-            Book = loan.Book?.ToDto(),
             Member = loan.Member?.ToDto()
+        };
+    }
+
+    public static LoanWithDetailsDto ToWithDetailsDto(this Loan loan)
+    {
+        var today = DateTime.UtcNow.Date;
+        var isOverdue = loan.Status == LoanStatus.Borrowed && loan.DueDate < today;
+        
+        return new LoanWithDetailsDto
+        {
+            Id = loan.Id,
+            Status = loan.Status,
+            LoanDate = loan.LoanDate,
+            DueDate = loan.DueDate,
+            ReturnDate = loan.ReturnDate,
+            IsOverdue = isOverdue,
+            BookId = loan.BookId,
+            BookTitle = loan.Book?.Title ?? string.Empty,
+            BookAuthor = loan.Book?.Author ?? string.Empty,
+            BookCoverImageUrl = loan.Book?.CoverImageUrl,
+            MemberId = loan.MemberId,
+            MemberName = $"{loan.Member?.FirstName} {loan.Member?.LastName}".Trim(),
+            MemberEmail = string.Empty
         };
     }
 
@@ -65,16 +86,16 @@ public static class LoanMapper
 
     public static OverdueLoanDto ToOverdueDto(this Loan loan)
     {
-        var daysOverdue = (int)(DateTime.UtcNow - loan.DueDate).TotalDays;
-
+        var daysOverdue = (int)(DateTime.UtcNow.Date - loan.DueDate.Date).TotalDays;
+        
         return new OverdueLoanDto
         {
             Id = loan.Id,
-            BookTitle = loan.Book?.Title ?? "Unknown Book",
-            MemberName = loan.Member != null ? $"{loan.Member.FirstName} {loan.Member.LastName}" : "Unknown Member",
-            MemberEmail = loan.Member?.User?.Email ?? "No Email",
             DueDate = loan.DueDate,
-            DaysOverdue = daysOverdue
+            DaysOverdue = daysOverdue,
+            BookTitle = loan.Book?.Title ?? string.Empty,
+            MemberName = $"{loan.Member?.FirstName} {loan.Member?.LastName}".Trim(),
+            MemberEmail = string.Empty
         };
     }
 
@@ -82,26 +103,18 @@ public static class LoanMapper
     {
         return new Loan
         {
-            BookId = dto.BookId,
             MemberId = dto.MemberId,
-            LoanDate = DateTime.UtcNow,
-            DueDate = dto.DueDate,
-            Status = LoanStatus.Borrowed,
-            Notes = dto.Notes,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            BookId = dto.BookId,
+            DueDate = dto.DueDate ?? DateTime.UtcNow.AddDays(14)
         };
     }
 
     public static void UpdateModel(this UpdateLoanDto dto, Loan loan)
     {
-        if (dto.ReturnDate.HasValue)
+        if (dto.DueDate.HasValue)
         {
-            loan.ReturnDate = dto.ReturnDate.Value;
+            loan.DueDate = dto.DueDate.Value;
         }
-        
         loan.Status = dto.Status;
-        loan.Notes = dto.Notes;
-        loan.UpdatedAt = DateTime.UtcNow;
     }
 } 

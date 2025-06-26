@@ -5,17 +5,29 @@ namespace LibraryManagement.Mappers;
 
 public static class UserMapper
 {
-    public static UserDto ToDto(this User user)
+    public static UserResponseDto ToDto(this User user)
     {
-        return new UserDto
+        return new UserResponseDto
         {
             Id = user.Id,
             Username = user.Username,
             Email = user.Email,
             Role = user.Role,
             IsActive = user.IsActive,
-            LastLoginDate = user.LastLoginDate,
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt
+        };
+    }
+
+    public static UserWithMemberDto ToWithMemberDto(this User user)
+    {
+        return new UserWithMemberDto
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            Role = user.Role,
+            IsActive = user.IsActive
         };
     }
 
@@ -25,10 +37,8 @@ public static class UserMapper
         {
             Username = dto.Username,
             Email = dto.Email,
-            PasswordHash = string.Empty, // Will be hashed in service
-            Salt = string.Empty, // Will be generated in service
-            Role = dto.Role,
-            IsActive = true
+            PasswordHash = dto.PasswordHash,
+            Role = dto.Role
         };
     }
 
@@ -37,6 +47,10 @@ public static class UserMapper
         user.Username = dto.Username;
         user.Email = dto.Email;
         user.Role = dto.Role;
-        user.UpdatedAt = DateTime.UtcNow;
+        
+        if (!string.IsNullOrEmpty(dto.PasswordHash))
+        {
+            user.PasswordHash = dto.PasswordHash;
+        }
     }
 } 

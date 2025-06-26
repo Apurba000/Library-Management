@@ -7,51 +7,97 @@ namespace LibraryManagement.DTOs;
 public class CreateLoanDto
 {
     [Required]
-    public int BookId { get; set; }
-    
-    [Required]
     public int MemberId { get; set; }
     
     [Required]
-    public DateTime DueDate { get; set; }
+    public int BookId { get; set; }
     
-    [MaxLength(500)]
-    public string? Notes { get; set; }
+    [Required]
+    public int BorrowedByUserId { get; set; }
+    
+    public DateTime? DueDate { get; set; }
 }
 
-// DTO for updating a loan (returning a book)
+// DTO for updating a loan
 public class UpdateLoanDto
 {
-    public DateTime? ReturnDate { get; set; }
+    public DateTime? DueDate { get; set; }
     
+    [Required]
     public LoanStatus Status { get; set; }
-    
-    [MaxLength(500)]
-    public string? Notes { get; set; }
 }
 
 // DTO for returning loan data
 public class LoanResponseDto
 {
     public int Id { get; set; }
-    public int BookId { get; set; }
     public int MemberId { get; set; }
+    public int BookId { get; set; }
+    public LoanStatus Status { get; set; }
     public DateTime LoanDate { get; set; }
     public DateTime DueDate { get; set; }
     public DateTime? ReturnDate { get; set; }
-    public LoanStatus Status { get; set; }
-    public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     
-    // Navigation properties
-    public BookResponseDto? Book { get; set; }
+    // Navigation properties - using simple DTOs to avoid circular references
     public MemberResponseDto? Member { get; set; }
+}
+
+// DTO for loan with details
+public class LoanWithDetailsDto
+{
+    public int Id { get; set; }
+    public LoanStatus Status { get; set; }
+    public DateTime LoanDate { get; set; }
+    public DateTime DueDate { get; set; }
+    public DateTime? ReturnDate { get; set; }
+    public bool IsOverdue { get; set; }
     
-    // Calculated properties
-    public bool IsOverdue => Status == LoanStatus.Borrowed && DateTime.UtcNow > DueDate;
-    public int DaysOverdue => IsOverdue ? (int)(DateTime.UtcNow - DueDate).TotalDays : 0;
-    public int DaysRemaining => Status == LoanStatus.Borrowed ? (int)(DueDate - DateTime.UtcNow).TotalDays : 0;
+    // Book details
+    public int BookId { get; set; }
+    public string BookTitle { get; set; } = string.Empty;
+    public string BookAuthor { get; set; } = string.Empty;
+    public string? BookCoverImageUrl { get; set; }
+    
+    // Member details
+    public int MemberId { get; set; }
+    public string MemberName { get; set; } = string.Empty;
+    public string MemberEmail { get; set; } = string.Empty;
+}
+
+// DTO for borrowing a book
+public class BorrowBookDto
+{
+    [Required]
+    public int MemberId { get; set; }
+    
+    [Required]
+    public int BookId { get; set; }
+    
+    [Required]
+    public int BorrowedByUserId { get; set; }
+}
+
+// DTO for returning a book
+public class ReturnBookDto
+{
+    [Required]
+    public int LoanId { get; set; }
+    
+    [Required]
+    public int ReturnedByUserId { get; set; }
+}
+
+// DTO for overdue loans
+public class OverdueLoanDto
+{
+    public int Id { get; set; }
+    public DateTime DueDate { get; set; }
+    public int DaysOverdue { get; set; }
+    public string BookTitle { get; set; } = string.Empty;
+    public string MemberName { get; set; } = string.Empty;
+    public string MemberEmail { get; set; } = string.Empty;
 }
 
 // DTO for loan summary (for lists)
@@ -79,17 +125,6 @@ public class LoanHistoryDto
     public DateTime? ReturnDate { get; set; }
     public LoanStatus Status { get; set; }
     public bool WasOverdue { get; set; }
-    public int DaysOverdue { get; set; }
-}
-
-// DTO for overdue loans
-public class OverdueLoanDto
-{
-    public int Id { get; set; }
-    public string BookTitle { get; set; } = string.Empty;
-    public string MemberName { get; set; } = string.Empty;
-    public string MemberEmail { get; set; } = string.Empty;
-    public DateTime DueDate { get; set; }
     public int DaysOverdue { get; set; }
 }
 

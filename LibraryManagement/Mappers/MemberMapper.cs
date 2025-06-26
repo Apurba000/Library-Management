@@ -1,5 +1,6 @@
 using LibraryManagement.Models;
 using LibraryManagement.DTOs;
+using LibraryManagement.Enums;
 
 namespace LibraryManagement.Mappers;
 
@@ -10,20 +11,32 @@ public static class MemberMapper
         return new MemberResponseDto
         {
             Id = member.Id,
-            MemberNumber = member.MemberNumber,
             FirstName = member.FirstName,
             LastName = member.LastName,
-            Phone = member.Phone ?? string.Empty,
-            Email = member.User?.Email ?? string.Empty,
-            Address = member.Address ?? string.Empty,
-            DateOfBirth = member.DateOfBirth ?? DateTime.MinValue,
-            Status = member.MembershipStatus,
-            MembershipStartDate = member.MembershipDate,
-            MembershipEndDate = member.MembershipExpiryDate,
-            Notes = string.Empty,
+            Phone = member.Phone,
+            Address = member.Address,
+            DateOfBirth = member.DateOfBirth,
+            MembershipStatus = member.MembershipStatus,
+            IsActive = member.IsActive,
             CreatedAt = member.CreatedAt,
             UpdatedAt = member.UpdatedAt,
-            User = member.User?.ToDto()
+            ActiveLoansCount = member.Loans?.Count(l => l.Status == LoanStatus.Borrowed) ?? 0
+        };
+    }
+
+    public static MemberWithLoansDto ToWithLoansDto(this Member member)
+    {
+        return new MemberWithLoansDto
+        {
+            Id = member.Id,
+            FirstName = member.FirstName,
+            LastName = member.LastName,
+            MembershipStatus = member.MembershipStatus,
+            ActiveLoansCount = member.Loans?.Count(l => l.Status == LoanStatus.Borrowed) ?? 0,
+            ActiveLoans = member.Loans?
+                .Where(l => l.Status == LoanStatus.Borrowed)
+                .Select(l => l.ToSummaryDto())
+                .ToList() ?? new List<LoanSummaryDto>()
         };
     }
 
@@ -34,7 +47,6 @@ public static class MemberMapper
             Id = member.Id,
             MemberNumber = member.MemberNumber,
             FullName = $"{member.FirstName} {member.LastName}",
-            Email = member.User?.Email ?? string.Empty,
             Status = member.MembershipStatus,
             ActiveLoansCount = activeLoansCount
         };
@@ -44,32 +56,22 @@ public static class MemberMapper
     {
         return new Member
         {
-            MemberNumber = dto.MemberNumber,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             Phone = dto.Phone,
             Address = dto.Address,
             DateOfBirth = dto.DateOfBirth,
-            MembershipStatus = dto.Status,
-            MembershipDate = dto.MembershipStartDate,
-            MembershipExpiryDate = dto.MembershipEndDate,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UserId = dto.UserId
         };
     }
 
     public static void UpdateModel(this UpdateMemberDto dto, Member member)
     {
-        member.MemberNumber = dto.MemberNumber;
         member.FirstName = dto.FirstName;
         member.LastName = dto.LastName;
         member.Phone = dto.Phone;
         member.Address = dto.Address;
         member.DateOfBirth = dto.DateOfBirth;
-        member.MembershipStatus = dto.Status;
-        member.MembershipDate = dto.MembershipStartDate;
-        member.MembershipExpiryDate = dto.MembershipEndDate;
-        member.UpdatedAt = DateTime.UtcNow;
+        member.MembershipStatus = dto.MembershipStatus;
     }
 } 

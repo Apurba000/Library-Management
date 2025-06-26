@@ -5,13 +5,27 @@ namespace LibraryManagement.Mappers;
 
 public static class CategoryMapper
 {
-    public static CategoryDto ToDto(this Category category)
+    public static CategoryResponseDto ToDto(this Category category)
     {
-        return new CategoryDto
+        return new CategoryResponseDto
         {
             Id = category.Id,
             Name = category.Name,
             Description = category.Description,
+            IsActive = category.IsActive,
+            CreatedAt = category.CreatedAt,
+            BookCount = category.Books?.Count(b => b.IsActive) ?? 0
+        };
+    }
+
+    public static CategoryWithBookCountDto ToBookCountDto(this Category category)
+    {
+        return new CategoryWithBookCountDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            BookCount = category.Books?.Count(b => b.IsActive) ?? 0,
             IsActive = category.IsActive
         };
     }
@@ -21,9 +35,7 @@ public static class CategoryMapper
         return new Category
         {
             Name = dto.Name,
-            Description = dto.Description,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
+            Description = dto.Description
         };
     }
 
@@ -31,6 +43,5 @@ public static class CategoryMapper
     {
         category.Name = dto.Name;
         category.Description = dto.Description;
-        // Note: Category model doesn't have UpdatedAt property
     }
 } 

@@ -99,10 +99,6 @@ public class BookResponseDto
     public string? CoverImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    
-    // Navigation properties (simplified)
-    public CategoryDto? Category { get; set; }
-    public UserDto? CreatedByUser { get; set; }
 }
 
 // DTO for book availability
