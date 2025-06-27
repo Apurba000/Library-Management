@@ -13,4 +13,5 @@ public interface IBookService
     Task<IEnumerable<Book>> GetBooksByCategoryAsync(int categoryId);
     Task<bool> IsBookAvailableAsync(int bookId);
     Task<int> GetAvailableCopiesAsync(int bookId);
+    Task<Book> DecrementAvailableCopiesAsync(int bookId);
 }

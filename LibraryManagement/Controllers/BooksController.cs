@@ -175,6 +175,25 @@ public class BooksController : ControllerBase
         }
     }
 
+    // PATCH: api/books/5/decrement-availability
+    [HttpPatch("{id}/decrement-availability")]
+    public async Task<ActionResult<BookResponseDto>> DecrementBookAvailability(int id)
+    {
+        try
+        {
+            var updatedBook = await _bookService.DecrementAvailableCopiesAsync(id);
+            return Ok(updatedBook.ToDto());
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "An error occurred while decrementing book availability", details = ex.Message });
+        }
+    }
+
     // DELETE: api/books/5
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBook(int id)

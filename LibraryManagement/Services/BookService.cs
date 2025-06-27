@@ -174,4 +174,41 @@ public class BookService : IBookService
     {
         return await _bookRepository.GetAvailableCopiesCountAsync(bookId);
     }
+
+    public async Task<Book> DecrementAvailableCopiesAsync(int bookId)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var book = await _bookRepository.GetByIdAsync(bookId);
+            if (book == null)
+            {
+                throw new InvalidOperationException($"Book with ID {bookId} not found.");
+            }
+
+            if (!book.IsActive)
+            {
+                throw new InvalidOperationException($"Book with ID {bookId} is not active.");
+            }
+
+            if (book.AvailableCopies <= 0)
+            {
+                throw new InvalidOperationException($"Book with ID {bookId} has no available copies to decrement.");
+            }
+
+            book.AvailableCopies--;
+            book.UpdatedAt = DateTime.UtcNow;
+
+            await _bookRepository.UpdateAsync(book);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return book;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 } 
