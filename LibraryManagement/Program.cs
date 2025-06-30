@@ -8,7 +8,16 @@ using Swashbuckle.AspNetCore.Swagger;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure to bind to all interfaces
-builder.WebHost.UseUrls("http://0.0.0.0:5288", "https://0.0.0.0:7291");
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+{
+    // Docker environment - use HTTP only
+    builder.WebHost.UseUrls("http://0.0.0.0:5288");
+}
+else
+{
+    // Local development - use both HTTP and HTTPS
+    builder.WebHost.UseUrls("http://0.0.0.0:5288", "https://0.0.0.0:7291");
+}
 
 builder.Services.AddOpenApi();
 
