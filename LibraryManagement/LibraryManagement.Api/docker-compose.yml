@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: librarymanagement
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "0.0.0.0:5432:5432"  # PostgreSQL - accessible from localhost and local IP
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ..
+      dockerfile: LibraryManagement.Api/Dockerfile
+    ports:
+      - "0.0.0.0:5288:5288"  # HTTP - accessible from localhost and local IP
+      - "0.0.0.0:7291:7291"  # HTTPS - accessible from localhost and local IP
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=librarymanagement;Username=postgres;Password=admin
+    volumes:
+      - ../logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - library-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - library-network
+
+volumes:
+  postgres_data:
+
+networks:
+  library-network:
+    driver: bridge 
